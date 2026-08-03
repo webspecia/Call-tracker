@@ -55,6 +55,20 @@ interface WebhookLogItem {
   created_at: string;
 }
 
+interface FallbackLogItem {
+  id: string;
+  timestamp: string;
+  eventType: string;
+  agentId: string | null;
+  deviceId: string | null;
+  callUuid: string | null;
+  errorCode?: string;
+  errorName?: string;
+  errorMessage: string;
+  rootCauseAnalysis: string;
+  payload: any;
+}
+
 function timeAgo(iso: string | null | undefined): string {
   if (!iso) return 'Never';
   const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -71,6 +85,7 @@ export default function DashboardClient() {
   const [callHistory, setCallHistory] = useState<CallRecord[]>([]);
   const [devices, setDevices] = useState<AgentDevice[]>([]);
   const [webhookLogs, setWebhookLogs] = useState<WebhookLogItem[]>([]);
+  const [fallbackLogs, setFallbackLogs] = useState<FallbackLogItem[]>([]);
   const [secret, setSecret] = useState<string>('webspecia-secret-key-12345');
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
@@ -93,6 +108,7 @@ export default function DashboardClient() {
         setCallHistory(data.call_history || []);
         setDevices(data.devices || []);
         setWebhookLogs(data.webhook_logs || []);
+        setFallbackLogs(data.fallback_logs || []);
         setSecret(data.webhook_secret || 'webspecia-secret-key-12345');
       }
     } catch (e) {
@@ -713,19 +729,48 @@ export default function DashboardClient() {
           )}
 
           {activeTab === 'logs' && (
-            <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
-                  📥 Inbound Central Webhook Ingestion Logs (PostgreSQL)
-                </h2>
-                <span style={{ fontSize: '12px', color: '#64748b', backgroundColor: '#e2e8f0', padding: '4px 10px', borderRadius: '12px' }}>
-                  {webhookLogs.length} events logged
-                </span>
-              </div>
-              <p style={{ fontSize: '12px', color: '#64748b', marginTop: 0, marginBottom: '16px' }}>
-                Central Ingestion Pipeline: All incoming webhook requests from external applications are logged here raw into PostgreSQL first, then routed to Agent IDs.
-              </p>
-              <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* DB Fallback Diagnostic Box */}
+              {fallbackLogs.length > 0 && (
+                <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', padding: '16px' }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    ⚠️ DB Failure Diagnostic Logs ({fallbackLogs.length} Events Fallbacked)
+                  </h3>
+                  <p style={{ fontSize: '12px', color: '#7f1d1d', margin: '0 0 12px 0' }}>
+                    Database connection or write failed. Events were safely captured via the local logger fallback system. Inspect root causes below:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto' }}>
+                    {fallbackLogs.map((log) => (
+                      <div key={log.id} style={{ backgroundColor: '#ffffff', border: '1px solid #fecaca', borderRadius: '6px', padding: '12px', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 'bold', color: '#dc2626' }}>🚨 [{log.errorCode}] {log.eventType}</span>
+                          <span style={{ color: '#64748b', fontSize: '11px' }}>{new Date(log.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div style={{ color: '#991b1b', fontWeight: 'bold', margin: '4px 0' }}>
+                          💡 Root Cause: {log.rootCauseAnalysis}
+                        </div>
+                        <div style={{ color: '#475569', fontSize: '11px', fontFamily: 'monospace' }}>
+                          Error: {log.errorMessage}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
+                    📥 Inbound Central Webhook Ingestion Logs (PostgreSQL)
+                  </h2>
+                  <span style={{ fontSize: '12px', color: '#64748b', backgroundColor: '#e2e8f0', padding: '4px 10px', borderRadius: '12px' }}>
+                    {webhookLogs.length} events logged
+                  </span>
+                </div>
+                <p style={{ fontSize: '12px', color: '#64748b', marginTop: 0, marginBottom: '16px' }}>
+                  Central Ingestion Pipeline: All incoming webhook requests from external applications are logged here raw into PostgreSQL first, then routed to Agent IDs.
+                </p>
+                <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', textAlign: 'left' }}>

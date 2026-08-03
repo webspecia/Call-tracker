@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { writeFallbackLog } from './logger';
 
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
@@ -18,11 +19,17 @@ let isInitialized = false;
 /**
  * Ensures all required database tables exist in PostgreSQL
  */
-export async function initDb() {
-  if (isInitialized) return;
+export async function initDb(): Promise<boolean> {
+  if (isInitialized) return true;
 
-  const client = await pool.connect();
+  if (!connectionString) {
+    writeFallbackLog('db_init', null, null, null, {}, new Error('DATABASE_URL is missing or undefined'));
+    return false;
+  }
+
+  let client;
   try {
+    client = await pool.connect();
     // 1. Central Webhook Ingestion Log table (stores all raw incoming webhooks immediately)
     await client.query(`
       CREATE TABLE IF NOT EXISTS webhook_logs (
@@ -75,35 +82,50 @@ export async function initDb() {
 
     isInitialized = true;
     console.log('PostgreSQL database initialized successfully.');
+    return true;
   } catch (err) {
+    writeFallbackLog('db_init', null, null, null, {}, err);
     console.error('Failed to initialize PostgreSQL database:', err);
+    return false;
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
 /**
- * Log raw incoming webhook payload centrally
+ * Log raw incoming webhook payload centrally. Fallbacks to log file if DB fails.
  */
 export async function saveWebhookLog(eventType: string, agentId: string | null, deviceId: string | null, callUuid: string | null, payload: any) {
   try {
-    await initDb();
+    const initialized = await initDb();
+    if (!initialized) {
+      writeFallbackLog(eventType, agentId, deviceId, callUuid, payload, new Error('Database initialization failed'));
+      return false;
+    }
+
     await pool.query(
       `INSERT INTO webhook_logs (event_type, agent_id, device_id, call_uuid, payload, status)
        VALUES ($1, $2, $3, $4, $5, 'PROCESSED')`,
       [eventType, agentId, deviceId, callUuid, JSON.stringify(payload)]
     );
+    return true;
   } catch (err) {
-    console.error('Error writing to webhook_logs:', err);
+    writeFallbackLog(eventType, agentId, deviceId, callUuid, payload, err);
+    return false;
   }
 }
 
 /**
- * Upsert agent device state
+ * Upsert agent device state. Fallbacks to log file if DB fails.
  */
 export async function upsertDevice(agentId: string, deviceId: string, opts?: { batteryOptimizationOff?: boolean | null; isConnectionTest?: boolean }) {
   try {
-    await initDb();
+    const initialized = await initDb();
+    if (!initialized) {
+      writeFallbackLog('device_upsert', agentId, deviceId, null, { opts }, new Error('Database initialization failed'));
+      return false;
+    }
+
     const now = new Date();
     await pool.query(
       `INSERT INTO agent_devices (device_id, agent_id, last_seen, last_connection_test, battery_optimization_off)
@@ -121,13 +143,15 @@ export async function upsertDevice(agentId: string, deviceId: string, opts?: { b
         opts?.batteryOptimizationOff ?? null,
       ]
     );
+    return true;
   } catch (err) {
-    console.error('Error upserting agent_devices:', err);
+    writeFallbackLog('device_upsert', agentId, deviceId, null, { opts }, err);
+    return false;
   }
 }
 
 /**
- * Save or update completed call record
+ * Save or update completed call record. Fallbacks to log file if DB fails.
  */
 export async function saveCallRecord(record: {
   call_uuid: string;
@@ -142,7 +166,12 @@ export async function saveCallRecord(record: {
   ended_at: string;
 }) {
   try {
-    await initDb();
+    const initialized = await initDb();
+    if (!initialized) {
+      writeFallbackLog('call_record', record.agent_id, record.device_id, record.call_uuid, record, new Error('Database initialization failed'));
+      return false;
+    }
+
     await pool.query(
       `INSERT INTO call_records (call_uuid, agent_id, device_id, direction, call_type, duration_sec, number, sim_slot, started_at, ended_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -167,24 +196,33 @@ export async function saveCallRecord(record: {
         record.ended_at,
       ]
     );
+    return true;
   } catch (err) {
-    console.error('Error saving call record:', err);
+    writeFallbackLog('call_record', record.agent_id, record.device_id, record.call_uuid, record, err);
+    return false;
   }
 }
 
 /**
- * Link recording URL to call record
+ * Link recording URL to call record. Fallbacks to log file if DB fails.
  */
 export async function updateCallRecording(callUuid: string, recordingUrl: string, fileName?: string, fileSize?: number) {
   try {
-    await initDb();
+    const initialized = await initDb();
+    if (!initialized) {
+      writeFallbackLog('recording_ready', null, null, callUuid, { recordingUrl, fileName, fileSize }, new Error('Database initialization failed'));
+      return false;
+    }
+
     await pool.query(
       `UPDATE call_records
        SET recording_url = $1, recording_file_name = $2, recording_file_size = $3
        WHERE call_uuid = $4`,
       [recordingUrl, fileName || null, fileSize || null, callUuid]
     );
+    return true;
   } catch (err) {
-    console.error('Error updating call recording:', err);
+    writeFallbackLog('recording_ready', null, null, callUuid, { recordingUrl, fileName, fileSize }, err);
+    return false;
   }
 }

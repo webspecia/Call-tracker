@@ -1,10 +1,25 @@
 import { NextResponse } from 'next/server';
 import { store } from '@/lib/store';
 import { pool, initDb } from '@/lib/db';
+import { getFallbackLogs } from '@/lib/logger';
 
 export async function GET() {
+  const fallbackLogs = getFallbackLogs();
+
   try {
-    await initDb();
+    const dbInitialized = await initDb();
+    if (!dbInitialized) {
+      return NextResponse.json({
+        active_calls: store.getActiveCalls(),
+        call_history: store.getCallHistory(),
+        devices: store.getDevices(),
+        webhook_logs: [],
+        fallback_logs: fallbackLogs,
+        webhook_secret: store.webhookSecret,
+        db_connected: false,
+        db_error: 'Database initialization failed. Check fallback_logs for root cause analysis.',
+      });
+    }
 
     // Fetch database call records with attached recordings
     const callDbResult = await pool.query(
@@ -77,6 +92,7 @@ export async function GET() {
       call_history: Array.from(combinedHistoryMap.values()),
       devices: Array.from(combinedDevicesMap.values()),
       webhook_logs: logsResult.rows,
+      fallback_logs: fallbackLogs,
       webhook_secret: store.webhookSecret,
       db_connected: true,
     });
@@ -87,6 +103,8 @@ export async function GET() {
       active_calls: store.getActiveCalls(),
       call_history: store.getCallHistory(),
       devices: store.getDevices(),
+      webhook_logs: [],
+      fallback_logs: fallbackLogs,
       webhook_secret: store.webhookSecret,
       db_connected: false,
       db_error: err.message,
