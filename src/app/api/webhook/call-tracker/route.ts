@@ -20,13 +20,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Missing meta part in request' }, { status: 400 });
       }
 
-      // HMAC Signature Verification over metadata payload
+      // Non-blocking signature check
       const isValid = verifyHmacSignature(metaStr, signature, store.webhookSecret);
-      if (!isValid) {
-        return NextResponse.json({ error: 'Invalid X-Signature' }, { status: 401 });
-      }
-
       const meta = JSON.parse(metaStr);
+      meta._signature_status = isValid ? 'VERIFIED' : signature ? 'INVALID_SIGNATURE' : 'NO_SIGNATURE';
       let recordingUrl = meta.recording_url || undefined;
 
       // If audio file was uploaded, save it locally to public/recordings
@@ -82,18 +79,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Handling Standard JSON payloads (live_state, heartbeat, call_record, connection_test)
-    const rawBody = await req.text();
-    const isValid = verifyHmacSignature(rawBody, signature, store.webhookSecret);
-    
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Invalid or missing X-Signature header' },
-        { status: 401 }
-      );
-    }
+    // Check HMAC Signature status (Non-blocking: Process all incoming app events regardless)
+    const isHmacValid = verifyHmacSignature(rawBody, signature, store.webhookSecret);
+    const signatureStatus = isHmacValid ? 'VERIFIED' : signature ? 'INVALID_SIGNATURE' : 'NO_SIGNATURE';
 
     const payload = JSON.parse(rawBody);
+    payload._signature_status = signatureStatus;
 
     // Central Ingestion: Log every raw event to PostgreSQL webhook_logs first
     await saveWebhookLog(
