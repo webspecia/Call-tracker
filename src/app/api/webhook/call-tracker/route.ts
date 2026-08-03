@@ -79,6 +79,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // 2. Handling Standard JSON payloads (live_state, heartbeat, call_record, connection_test)
+    const rawBody = await req.text();
+
     // Check HMAC Signature status (Non-blocking: Process all incoming app events regardless)
     const isHmacValid = verifyHmacSignature(rawBody, signature, store.webhookSecret);
     const signatureStatus = isHmacValid ? 'VERIFIED' : signature ? 'INVALID_SIGNATURE' : 'NO_SIGNATURE';
