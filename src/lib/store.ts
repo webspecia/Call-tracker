@@ -85,59 +85,7 @@ class StorageStore {
   public webhookSecret: string = 'webspecia-secret-key-12345';
 
   constructor() {
-    // Seed initial mock data for demonstrate UI responsiveness
-    const now = new Date();
-    const ago10m = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
-    const ago15m = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
-    
-    this.callHistory.push(
-      {
-        type: 'call_record',
-        call_uuid: '550e8400-e29b-41d4-a716-446655440001',
-        direction: 'incoming',
-        call_type: 'answered',
-        duration_sec: 142,
-        number: '+919876543210',
-        sim_slot: 0,
-        agent_id: 'AGENT_101',
-        device_id: 'DEV_SIM_O1',
-        started_at: ago15m,
-        ended_at: ago10m,
-        ts: ago10m,
-      },
-      {
-        type: 'call_record',
-        call_uuid: '550e8400-e29b-41d4-a716-446655440002',
-        direction: 'outgoing',
-        call_type: 'not_connected',
-        duration_sec: 0,
-        number: '+919123456789',
-        sim_slot: 1,
-        agent_id: 'AGENT_102',
-        device_id: 'DEV_SIM_V2',
-        started_at: ago10m,
-        ended_at: ago10m,
-        ts: ago10m,
-      }
-    );
-
-    this.devices.set('DEV_SIM_O1', {
-      agent_id: 'AGENT_101',
-      device_id: 'DEV_SIM_O1',
-      last_seen: new Date().toISOString(),
-      last_connection_test: ago15m,
-      battery_optimization_off: true,
-      autostart_enabled: 'UNVERIFIED',
-    });
-
-    this.devices.set('DEV_SIM_V2', {
-      agent_id: 'AGENT_102',
-      device_id: 'DEV_SIM_V2',
-      last_seen: new Date().toISOString(),
-      last_connection_test: null,
-      battery_optimization_off: false,
-      autostart_enabled: 'UNVERIFIED',
-    });
+    // Clean initial state (no mock data)
   }
 
   // battery_optimization_off is reported by the app (readable via PowerManager, see ARCHITECTURE.md §8).

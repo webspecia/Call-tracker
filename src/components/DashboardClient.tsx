@@ -530,47 +530,47 @@ export default function DashboardClient() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>60</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#64748b' }}>📞 Total Calls</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b' }}>1h 18m 23s</div>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b' }}>-</div>
                       <div style={{ fontSize: '11px', color: '#64748b' }}>⏱️ Call Duration</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#16a34a' }}>6</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#16a34a' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#16a34a' }}>↙️ Incoming</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#16a34a' }}>0h 24m 31s</div>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#16a34a' }}>-</div>
                       <div style={{ fontSize: '11px', color: '#16a34a' }}>↙️ Incoming Duration</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ea580c' }}>42</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ea580c' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#ea580c' }}>↗️ Outgoing</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ea580c' }}>0h 53m 52s</div>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ea580c' }}>-</div>
                       <div style={{ fontSize: '11px', color: '#ea580c' }}>↗️ Outgoing Duration</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>11</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#dc2626' }}>↩️ Missed</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>1</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#dc2626' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#dc2626' }}>🚫 Rejected</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>3</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#ef4444' }}>🚫 Never Attended</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>12</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#ef4444' }}>🚫 Not Pickup by Client</div>
                     </div>
                     <div style={{ backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '6px', gridColumn: 'span 2' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#2563eb' }}>29</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#2563eb' }}>0</div>
                       <div style={{ fontSize: '11px', color: '#2563eb' }}>📞 Connected Calls</div>
                     </div>
                   </div>
