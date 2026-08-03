@@ -832,6 +832,7 @@ export default function DashboardClient() {
                 </table>
               </div>
             </div>
+          </div>
           )}
 
           {activeTab === 'webhook' && (
